@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>chat</title>
+</head>
+
+<body>
+    <textarea name="text" id="text" cols="50" rows="1"></textarea>
+    <button id="send_button">send</button>
+    <div id="messages">
+        <div id="dummy"></div>
+    </div>
+
+    <script src='https://cdn.mlkcca.com/v2.0.0/milkcocoa.js'></script>
+    <script>
+        // Milkcocoaインスタンスの作成
+        var mk = new MilkCocoa("hotic23lr8n.mlkcca.com");
+        var ds = mk.dataStore("chat");
+
+        var messages = document.getElementById('messages');
+
+        // 1.履歴の取得
+        ds.stream().size(100).next(function (err, messages) {
+            if (err) return;
+
+            messages.forEach(function (message) {
+                render_message(message.value);
+            });
+        });
+
+        // 2.メッセージの送信
+        document.getElementById('send_button').addEventListener('click', function (e) {
+            var textarea = document.getElementById("text");
+            ds.push({
+                text: textarea.value
+            }, function (err, pushed) {
+                if (err) {
+                    console.log(err, pushed);
+                    return;
+                }
+                textarea.value = "";
+            });
+        });
+
+        // 3.メッセージの受け取り
+        ds.on('push', function (pushed) {
+            render_message(pushed.value);
+        });
+
+        function render_message(message) {
+            var element = document.createElement('div');
+            element.textContent = message.text;
+            messages.insertBefore(element, messages.firstChild);
+        }
+    </script>
+</body>
+
+</html>
